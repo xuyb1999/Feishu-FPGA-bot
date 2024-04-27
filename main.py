@@ -43,8 +43,6 @@ class FeiShuRobot:
                 print("INFO: Our text is sent successfully!")
             else:
                 print("ERROR: Failed to send text! code: %s, message: %s" % (json_parser["code"], json_parser["msg"]))
-
-            return response.text
         except Exception as e:
             print("发送飞书失败:", e)
 
