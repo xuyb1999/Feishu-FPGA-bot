@@ -4,6 +4,7 @@ import time
 import hmac
 import hashlib
 import base64
+import json
 
 class FeiShuRobot:
    def __init__(self, robot_id, secret) -> None:
@@ -34,10 +35,16 @@ class FeiShuRobot:
                         "text": text
                     }
                 }
-           r = requests.post(url, headers=headers, json=data)
-           print("发送飞书成功")
+           response = requests.post(url, headers=headers, json=data)
 
-           return r.text
+           # Check whether we send this message successfully
+           json_parser = json.loads(response.text)
+           if json_parser["code"] == 0:
+               print("INFO: Our text is sent successfully!")
+           else:
+               print("ERROR: Failed to send text! code: %s, message: %s" % (json_parser["code"], json_parser["msg"]))
+
+           return response.text
        except Exception as e:
            print("发送飞书失败:", e)
 
