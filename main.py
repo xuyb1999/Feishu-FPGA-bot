@@ -96,7 +96,7 @@ if __name__ == '__main__':
     # Initialize the Feishu robot
     feishu = FeiShuRobot(robot_id, secret, fpga_dict)
 
-    # Check FPGA status every 5 minutes
+    # Check FPGA status every 1 minute
     last_fpga_status = ""
     while True:
         fpga_status_table = feishu.get_fpga_status_table()
@@ -108,4 +108,4 @@ if __name__ == '__main__':
         else:
             print("[%s] INFO: FPGA status stays the same, skip sending message!" % datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
-        time.sleep(300)
+        time.sleep(60)
