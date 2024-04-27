@@ -65,11 +65,13 @@ class FeiShuRobot:
             try:
                 ssh.connect(hostname=value['ip'], port=value['port'], username=value['user'], timeout=5)
                 stdin, stdout, stderr = ssh.exec_command(ssh_command)
-                user_occupy_fpga = stdout.read().decode()[:-1]
-                if user_occupy_fpga != '':
-                    fpga_status_list.append("%s | %s" % (name, user_occupy_fpga))
-                else:
+                users_occupy_fpga = [u for u in list(set(stdout.read().decode().split('\n'))) if u != '']
+                if len(users_occupy_fpga) == 0:
                     fpga_status_list.append("%s | %s" % (name, "---"))
+                elif len(users_occupy_fpga) == 1:
+                    fpga_status_list.append("%s | %s" % (name, users_occupy_fpga[0]))
+                else:
+                    fpga_status_list.append("%s | %s" % (name, " ".join(users_occupy_fpga)))
             except Exception as e:
                 fpga_status_list.append("%s | %s" % (name, "Unreachable"))
                 print("[%s] ERROR: exception occurs when connect %s: " %
