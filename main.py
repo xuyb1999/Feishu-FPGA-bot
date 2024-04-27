@@ -5,6 +5,7 @@ import hmac
 import hashlib
 import base64
 import json
+from datetime import datetime
 
 class FeiShuRobot:
     def __init__(self, robot_id, secret) -> None:
@@ -22,6 +23,7 @@ class FeiShuRobot:
         return str(timestamp), str(sign)
 
     def send_text(self, text):
+        current_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         try:
             url = f"https://open.feishu.cn/open-apis/bot/v2/hook/{self.robot_id}"
             headers = {"Content-Type": "text/plain"}
@@ -40,11 +42,12 @@ class FeiShuRobot:
             # Check whether we send this message successfully
             json_parser = json.loads(response.text)
             if json_parser["code"] == 0:
-                print("INFO: Our text is sent successfully!")
+                print("[%s] INFO: Our text is sent successfully!" % current_time_str)
             else:
-                print("ERROR: Failed to send text! code: %s, message: %s" % (json_parser["code"], json_parser["msg"]))
+                print("[%s] ERROR: Failed to send text! code: %s, message: %s" % (
+                    current_time_str, json_parser["code"], json_parser["msg"]))
         except Exception as e:
-            print("发送飞书失败:", e)
+            print("[%s] ERROR: Failed to send text due to the following exception:\n\t" % current_time_str, e)
 
 if __name__ == '__main__':
     # Parse the input arguments
