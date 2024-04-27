@@ -45,11 +45,14 @@ class FeiShuRobot:
             json_parser = json.loads(response.text)
             if json_parser["code"] == 0:
                 print("[%s] INFO: Our text is sent successfully!" % current_time_str)
+                return True
             else:
                 print("[%s] ERROR: Failed to send text! code: %s, message: %s" % (
                     current_time_str, json_parser["code"], json_parser["msg"]))
+                return False
         except Exception as e:
             print("[%s] ERROR: Failed to send text due to the following exception:\n\t" % current_time_str, e)
+            return False
 
     def get_fpga_status_table(self):
         fpga_status_list = []
@@ -93,14 +96,15 @@ if __name__ == '__main__':
     # Initialize the Feishu robot
     feishu = FeiShuRobot(robot_id, secret, fpga_dict)
 
-    # Check FPGA status every 5 mins
+    # Check FPGA status every 5 minutes
     last_fpga_status = ""
     while True:
         fpga_status_table = feishu.get_fpga_status_table()
 
         if fpga_status_table != last_fpga_status:
-            last_fpga_status = fpga_status_table
-            feishu.send_text(fpga_status_table)
+            ret = feishu.send_text(fpga_status_table)
+            if ret:
+                last_fpga_status = fpga_status_table
         else:
             print("[%s] INFO: FPGA status stays the same, skip sending message!" % datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
