@@ -1,17 +1,17 @@
 {
-    "fpga_022": {
+    "fpga-host-1": {
         "user": "fpgabot",
-        "ip": "10.30.5.22",
+        "ip": "10.156.155.1",
         "port": 22
     },
-    "fpga_085": {
+    "fpga-host-2": {
         "user": "fpgabot",
-        "ip": "10.30.5.85",
+        "ip": "10.156.155.2",
         "port": 22
     },
-    "fpga_106": {
+    "fpga-host-3": {
         "user": "fpgabot",
-        "ip": "10.30.5.106",
+        "ip": "10.156.155.3",
         "port": 22
     }
 }
