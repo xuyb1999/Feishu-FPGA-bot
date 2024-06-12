@@ -13,5 +13,15 @@
         "user": "fpgabot",
         "ip": "10.156.155.3",
         "port": 22
+    },
+    "fpga-host-4": {
+        "user": "fpgabot",
+        "ip": "10.156.155.103",
+        "port": 22
+    },
+    "fpga-host-5": {
+        "user": "fpgabot",
+        "ip": "10.156.155.104",
+        "port": 22
     }
 }
