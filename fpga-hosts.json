@@ -9,11 +9,6 @@
         "ip": "10.156.155.3",
         "port": 22
     },
-    "fpga-host-4": {
-        "user": "fpgabot",
-        "ip": "10.156.155.103",
-        "port": 22
-    },
     "fpga-host-5": {
         "user": "fpgabot",
         "ip": "10.156.155.104",
@@ -22,6 +17,11 @@
     "fpga-host-6": {
         "user": "fpgabot",
         "ip": "10.156.152.131",
+        "port": 22
+    },
+    "fpga-host-7": {
+        "user": "fpgabot",
+        "ip": "10.156.155.240",
         "port": 22
     }
 }
