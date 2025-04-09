@@ -78,7 +78,7 @@ class FeiShuRobot:
                       (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), value['ip']), e)
             ssh.close()
 
-        fpga_status_table = "FPGA Status List\n" + '\n'.join(fpga_status_list)
+        fpga_status_table = "FPGA Status List (ZGCLab)\n" + '\n'.join(fpga_status_list)
 
         return fpga_status_table
 
