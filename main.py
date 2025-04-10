@@ -13,6 +13,7 @@ class FeiShuRobot:
         self.robot_id = robot_id
         self.secret = secret
         self.fpga_dict = fpga_dict
+        self.last_alive_day = -1
 
     def gen_sign(self):
         # Concatenate timestamp and secret
@@ -82,6 +83,14 @@ class FeiShuRobot:
 
         return fpga_status_table
 
+    def check_and_send_alive(self):
+        now = datetime.now()
+        if now.hour == 0 and now.minute == 0 and now.day != self.last_alive_day:
+            alive_msg = f"[Alive Check] FPGA bot is still running at {now.strftime('%Y-%m-%d %H:%M:%S')}"
+            ret = self.send_text(alive_msg)
+            if ret:
+                self.last_alive_day = now.day
+
 if __name__ == '__main__':
     # Parse the input arguments
     parser = argparse.ArgumentParser(description='Run this script to launch a Feishu robot to monitor FPGA status')
@@ -101,6 +110,8 @@ if __name__ == '__main__':
     # Check FPGA status every 1 minute
     last_fpga_status = ""
     while True:
+        feishu.check_and_send_alive()
+
         fpga_status_table = feishu.get_fpga_status_table()
 
         if fpga_status_table != last_fpga_status:
