@@ -7,13 +7,14 @@ import base64
 import json
 from datetime import datetime
 import paramiko
+import subprocess
 
 class FeiShuRobot:
     def __init__(self, robot_id, secret, fpga_dict) -> None:
         self.robot_id = robot_id
         self.secret = secret
         self.fpga_dict = fpga_dict
-        self.last_alive_day = -1
+        self.last_alive_day = -1  # Track the last day an alive message was sent
 
     def gen_sign(self):
         # Concatenate timestamp and secret
@@ -55,6 +56,38 @@ class FeiShuRobot:
             print("[%s] ERROR: Failed to send text due to the following exception:\n\t" % current_time_str, e)
             return False
 
+    def get_dmz_ip(self):
+        """Get the public IP by executing 'curl ip.sb' command"""
+        try:
+            # Execute curl command with 5-second timeout
+            result = subprocess.run(
+                ["curl", "-s", "ip.sb"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                return result.stdout.strip()
+            return "Unknown (Curl Failed)"
+        except subprocess.TimeoutExpired:
+            return "Unknown (Timeout)"
+        except Exception as e:
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Failed to get DMZ IP: {e}")
+
+    def check_and_send_alive(self):
+        """Check if it's midnight, and send an alive message with DMZ IP"""
+        now = datetime.now()
+        if now.hour == 0 and now.minute == 0 and now.day != self.last_alive_day:
+            dmz_ip = self.get_dmz_ip()  # Fetch DMZ IP
+            alive_msg = (
+                f"[Alive Check] FPGA monitor is still running!\n"
+                f"🕒 Time: {now.strftime('%Y-%m-%d %H:%M:%S')}\n"
+                f"🌐 DMZ Host IP: {dmz_ip}"
+            )
+            ret = self.send_text(alive_msg)
+            if ret:
+                self.last_alive_day = now.day
+
     def get_fpga_status_table(self):
         fpga_status_list = []
         monitor_cmd_list = ["minicom", "pcie-util"]
@@ -83,14 +116,6 @@ class FeiShuRobot:
 
         return fpga_status_table
 
-    def check_and_send_alive(self):
-        now = datetime.now()
-        if now.hour == 0 and now.minute == 0 and now.day != self.last_alive_day:
-            alive_msg = f"[Alive Check] FPGA bot is still running at {now.strftime('%Y-%m-%d %H:%M:%S')}"
-            ret = self.send_text(alive_msg)
-            if ret:
-                self.last_alive_day = now.day
-
 if __name__ == '__main__':
     # Parse the input arguments
     parser = argparse.ArgumentParser(description='Run this script to launch a Feishu robot to monitor FPGA status')
@@ -110,6 +135,7 @@ if __name__ == '__main__':
     # Check FPGA status every 1 minute
     last_fpga_status = ""
     while True:
+        # Check and send alive message at midnight
         feishu.check_and_send_alive()
 
         fpga_status_table = feishu.get_fpga_status_table()
