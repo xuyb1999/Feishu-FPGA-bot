@@ -1,12 +1,22 @@
 {
-    "fpga-host-1": {
+    "zgclab-host-1": {
         "user": "fpgabot",
-        "ip": "10.147.18.2",
+        "ip": "192.168.3.3",
         "port": 22
     },
-    "fpga-host-2": {
+    "zgclab-host-2": {
         "user": "fpgabot",
-        "ip": "10.147.18.3",
+        "ip": "192.168.3.4",
         "port": 22
+    },
+    "zgclab-host-3": {
+    	"user": "fpgabot",
+	"ip": "192.168.3.5",
+	"port": 22
+    },
+    "icthby-host-4":{
+    	"user": "fpgabot",
+	"ip": "10.147.18.5",
+	"port": 22
     }
 }
