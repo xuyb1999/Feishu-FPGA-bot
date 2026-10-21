@@ -5,7 +5,7 @@ import hmac
 import hashlib
 import base64
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import paramiko
 import subprocess
 
@@ -14,7 +14,7 @@ class FeiShuRobot:
         self.robot_id = robot_id
         self.secret = secret
         self.fpga_dict = fpga_dict
-        self.last_alive_day = -1  # Track the last day an alive message was sent
+        self.next_alive_time = None
 
     def gen_sign(self):
         # Concatenate timestamp and secret
@@ -74,10 +74,19 @@ class FeiShuRobot:
         except Exception as e:
             print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: Failed to get DMZ IP: {e}")
 
-    def check_and_send_alive(self):
-        """Check if it's midnight, and send an alive message with DMZ IP"""
+    def check_and_send_alive(self) -> bool:
+        """Send a due daily alive message and return whether it succeeded."""
         now = datetime.now()
-        if now.hour == 0 and now.minute == 0 and now.day != self.last_alive_day:
+        alive_time = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        if self.next_alive_time is None:
+            self.next_alive_time = alive_time
+            # Starting after today's scheduled minute should wait until tomorrow.
+            if now >= alive_time + timedelta(minutes=1):
+                self.next_alive_time += timedelta(days=1)
+            print(f"[{now.strftime('%Y-%m-%d %H:%M:%S')}] INFO: Next Alive Check: {self.next_alive_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+        # A slow query or send can move the next poll past the scheduled minute.
+        if now >= self.next_alive_time:
             dmz_ip = self.get_dmz_ip()  # Fetch DMZ IP
             alive_msg = (
                 f"[Alive Check] FPGA monitor is still running!\n"
@@ -86,7 +95,10 @@ class FeiShuRobot:
             )
             ret = self.send_text(alive_msg)
             if ret:
-                self.last_alive_day = now.day
+                self.next_alive_time = alive_time + timedelta(days=1)
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] INFO: Alive Check sent successfully; FPGA status will be sent next.")
+                return True
+        return False
 
     def get_fpga_status_table(self):
         fpga_status_list = []
@@ -134,16 +146,19 @@ if __name__ == '__main__':
 
     # Check FPGA status every 1 minute
     last_fpga_status = ""
+    fpga_status_pending = False
     while True:
         # Check and send alive message at midnight
-        feishu.check_and_send_alive()
+        if feishu.check_and_send_alive():
+            fpga_status_pending = True
 
         fpga_status_table = feishu.get_fpga_status_table()
 
-        if fpga_status_table != last_fpga_status:
+        if fpga_status_pending or fpga_status_table != last_fpga_status:
             ret = feishu.send_text(fpga_status_table)
             if ret:
                 last_fpga_status = fpga_status_table
+                fpga_status_pending = False
         else:
             print("[%s] INFO: FPGA status stays the same, skip sending message!" % datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
